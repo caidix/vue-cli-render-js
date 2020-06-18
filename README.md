@@ -18,11 +18,75 @@ dev-server开启后编译地址为 端口号/js(css)/pageName.js(css)
 如果引入的项目Vue内没有js文件所需的一些js文件，则会报错。
 
 ## 使用方式
+- 向后端上传打包的js、css文件
+- 后端提供接口返回文件地址
 - 借助知名库requirejs
 ```javascript
+<template>
+  <div id="#renderJS"></div>
+</template>
 import requirejs from 'requirejs';
-
+import Vue from 'vue';
 export default {
-  
+  data() {
+    return { //假设
+      jsUrl: 'xxx',
+      cssUrl: 'xxx'
+    }
+  },
+  methods: {
+    renderMap() {
+      let link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = this.cssUrl;
+      document.head.appendChild(link);
+      requirejs([
+        // js name
+      ], root => {
+        root.render(Vue, '#renderJS');
+      })
+    }
+  }
 }
+```
+
+## 补充 
+我们知道，Vue在$mount构建前并未挂载到某个实例中，且在根实例中可以这么写：
+```javascript
+new Vue({
+  el: '#CDCDCDCD',
+  provide: {
+    foo
+  },
+  data: {
+    foo: 1
+  },
+  computed: {
+    bar: function () { /* ... */ }
+  },
+  methods: {
+    baz: function () { /* ... */ }
+  }
+})
+```
+我们也可以做更多的配置使父项目传入参数给js渲染的界面。比如：
+index.js
+```javascript
+export default {
+  createVue(opts) {
+    return new Vue({
+      ...opts,
+    render: h => h(App)
+    })
+  },
+  render(opts) {
+    // 根据协定好的传入进行处理
+    // opts = {
+    //   el: 'xx',
+    //   data:'xx'
+    // }
+    return this.createVue(opts);
+  }
+}
+
 ```
